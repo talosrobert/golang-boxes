@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"gitlab.willhaben.at/talosrobert/golang-boxes/internal/models"
+	"github.com/talosrobert/golang-boxes/internal/models"
 )
 
 type application struct {

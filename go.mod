@@ -1,4 +1,4 @@
-module gitlab.willhaben.at/talosrobert/golang-boxes
+module github.com/talosrobert/golang-boxes
 
 go 1.24.3
 
