@@ -1,15 +1,19 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog"
 	"net/http"
 	"os"
 
-	"github.com/rs/zerolog"
+	"gitlab.willhaben.at/talosrobert/golang-boxes/internal/models"
 )
 
 type application struct {
 	logger zerolog.Logger
+	boxes  *models.BoxModel
 }
 
 func (app *application) routes() *http.ServeMux {
@@ -24,20 +28,32 @@ func (app *application) routes() *http.ServeMux {
 }
 
 func main() {
-	app := &application{
-		logger: zerolog.New(os.Stderr).With().Timestamp().Logger(),
-	}
+	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	addr := flag.String("addr", ":4321", "HTTP server network address")
+	dsn := flag.String("dsn", "localhost:5432", "database network address")
 	flag.Parse()
+
+	dbpool, err := pgxpool.New(context.Background(), *dsn)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Unable to create connection pool")
+		os.Exit(1)
+	}
+	defer dbpool.Close()
+
+	app := &application{
+		logger: logger,
+		boxes:  &models.BoxModel{DB: dbpool},
+	}
 
 	mux := app.routes()
 	fs := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fs))
 
-	app.logger.Info().Msgf("Starting HTTP server on %s", *addr)
-	err := http.ListenAndServe(*addr, mux)
-	app.logger.Fatal().Msg(err.Error())
-	os.Exit(1)
+	logger.Info().Msgf("Starting HTTP server on %s", *addr)
+	if err = http.ListenAndServe(*addr, mux); err != nil {
+		logger.Fatal().Err(err).Send()
+		os.Exit(1)
+	}
 }
