@@ -55,7 +55,12 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Display Create Form"))
+	rows, err := app.boxes.Insert("this", "sucks", 3)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	w.Write([]byte(fmt.Sprintf("many rows were touched today: %d", rows)))
 }
 
 func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
