@@ -51,19 +51,25 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "View box with id %d", id)
+	box, err := app.boxes.Get(id)
+	if err != nil {
+		app.logger.Error().Err(err).Str("http_method", r.Method).Str("uri", r.URL.RequestURI()).Send()
+		http.NotFound(w, r)
+	}
+
+	fmt.Fprintf(w, "View box %v", box)
 }
 
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("box create form"))
+}
+
+func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusCreated)
 	rows, err := app.boxes.Insert("this", "sucks", 3)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
 
 	w.Write([]byte(fmt.Sprintf("many rows were touched today: %d", rows)))
-}
-
-func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Create new Box"))
 }

@@ -16,7 +16,7 @@ type application struct {
 	boxes  *models.BoxModel
 }
 
-func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", app.home)
@@ -24,7 +24,10 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("GET /box/create", app.boxCreate)
 	mux.HandleFunc("POST /box/create", app.boxCreatePost)
 
-	return mux
+	fs := http.FileServer(http.Dir("./ui/static"))
+	mux.Handle("GET /static/", http.StripPrefix("/static", fs))
+
+	return app.logRequest(mux)
 }
 
 func main() {
@@ -48,8 +51,6 @@ func main() {
 	}
 
 	mux := app.routes()
-	fs := http.FileServer(http.Dir("./ui/static"))
-	mux.Handle("GET /static/", http.StripPrefix("/static", fs))
 
 	logger.Info().Msgf("Starting HTTP server on %s", *addr)
 	if err = http.ListenAndServe(*addr, mux); err != nil {
