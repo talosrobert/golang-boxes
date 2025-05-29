@@ -1,0 +1,14 @@
+{{define "title"}}Box #{{.ID}}{{end}}
+{{define "main"}}
+<div class='snippet'>
+    <div class='metadata'>
+        <strong>{{.Title}}</strong>
+        <span>#{{.ID}}</span>
+    </div>
+    <pre><code>{{.Content}}</code></pre>
+    <div class='metadata'>
+        <time>Created: {{.Created.Format "02 Jan 06 15:04 MST"}}</time>
+        <time>Expires: {{.Expires.Format "02 Jan 06 15:04 MST"}}</time>
+    </div>
+</div>
+{{end}}
