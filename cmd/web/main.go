@@ -12,8 +12,9 @@ import (
 )
 
 type application struct {
-	logger zerolog.Logger
-	boxes  *models.BoxModel
+	logger        zerolog.Logger
+	boxes         *models.BoxModel
+	templateCache templateCache
 }
 
 func (app *application) routes() http.Handler {
@@ -45,9 +46,16 @@ func main() {
 	}
 	defer dbpool.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Unable to create connection pool")
+		os.Exit(1)
+	}
+
 	app := &application{
-		logger: logger,
-		boxes:  &models.BoxModel{DB: dbpool},
+		logger:        logger,
+		boxes:         &models.BoxModel{DB: dbpool},
+		templateCache: templateCache,
 	}
 
 	mux := app.routes()
