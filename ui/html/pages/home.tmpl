@@ -1,5 +1,22 @@
 {{define "title"}}Home - boxes{{end}}
 {{define "main"}}
-    <h2>Latest boxes</h2>
-    <p>There's nothing to see here yet!</p>
+<h2>Latest Boxes</h2>
+    {{if .Boxes}}
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Created</th>
+            <th>ID</th>
+        </tr>
+    {{range .Boxes}}
+        <tr>
+            <td><a href='/box/view/{{.ID}}'>{{.Title}}</a></td>
+            <td>{{.Created}}</td>
+            <td>#{{.ID}}</td>
+        </tr>
+        {{end}}
+    </table>
+    {{else}}
+    <p>There's nothing to see here... yet!</p>
+{{end}}
 {{end}}

@@ -4,7 +4,7 @@
 
 1. build the container image for the PostgreSQL database using the Containerfile
 2. run the container using that image and publish all exposed ports to random ports. This means that the port tcp/5432 should be exposed at some random ephemeral port on your host.
-3. connect to the database but the port number might change. Make sure you're trying to connect to the correct one. Check with `ss -tlnp` for the listenting tcp ports.
+3. connect to the database but the port number might change. Make sure you're trying to connect to the correct one. Check with `ss -tlnp` for the listenting tcp ports. Or use `podman container inspect` to see the exporter ports.
 
 ~~~bash
 $ podman image build -t boxesdb -f Containerfile .

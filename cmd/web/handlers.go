@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	//"github.com/talosrobert/golang-boxes/internal/models"
 )
 
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
@@ -28,13 +27,20 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		"./ui/html/pages/home.tmpl",
 	}
 
+	boxes, err := app.boxes.Latest()
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
 	ts, err := template.ParseFiles(tmpls...)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
+	data := templateData{Boxes: boxes}
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
@@ -73,7 +79,9 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", box)
+	data := templateData{Box: box}
+
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}

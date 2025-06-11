@@ -62,7 +62,7 @@ func (m *BoxModel) Latest() ([]Box, error) {
 
 	for rows.Next() {
 		var box Box
-		err := m.DB.QueryRow(ctx, query).Scan(&box.ID, &box.Title, &box.Content, &box.Created, &box.Expires)
+		err := rows.Scan(&box.ID, &box.Title, &box.Content, &box.Created, &box.Expires)
 		if err != nil {
 			return nil, err
 		}
