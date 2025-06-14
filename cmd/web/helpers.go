@@ -6,7 +6,7 @@ import (
 )
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data *templateData) {
-	tmpls, ok := app.templateCache[page]
+	ts, ok := app.templateCache[page]
 	if !ok {
 		err := fmt.Errorf("Template %s was not found in templateCache", page)
 		app.logger.Error().Err(err).Send()
@@ -14,7 +14,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 	w.WriteHeader(status)
-	err := tmpls.ExecuteTemplate(w, "base", data)
+	err := ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.logger.Error().Err(err).Send()
 		app.serverError(w, r, err)

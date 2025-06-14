@@ -25,7 +25,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	data := &templateData{Boxes: boxes}
+	data := newTemplateData(
+		templateDataWithBoxes(boxes),
+	)
 	app.render(w, r, http.StatusOK, "home", data)
 }
 
@@ -50,7 +52,9 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{Box: box}
+	data := newTemplateData(
+		templateDataWithBox(box),
+	)
 	app.render(w, r, http.StatusOK, "view", data)
 }
 
