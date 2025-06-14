@@ -15,4 +15,4 @@ build:
 ## run: run the  application
 .PHONY: run
 run: build
-	/tmp/bin/${binary_name}
+	./bin/${binary_name}

@@ -11,7 +11,7 @@
     {{range .Boxes}}
         <tr>
             <td><a href='/box/view/{{.ID}}'>{{.Title}}</a></td>
-            <td>{{.Created}}</td>
+            <td>{{.Created.Format "02 Jan 06 15:04 MST"}}</td>
             <td>#{{.ID}}</td>
         </tr>
         {{end}}

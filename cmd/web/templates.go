@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"strings"
 
 	"github.com/talosrobert/golang-boxes/internal/models"
 )
@@ -12,7 +13,7 @@ type templateData struct {
 	Boxes []models.Box
 }
 
-type templateCache = map[string]*template.Template
+type templateCache map[string]*template.Template
 
 func newTemplateCache() (templateCache, error) {
 	cache := templateCache{}
@@ -23,19 +24,24 @@ func newTemplateCache() (templateCache, error) {
 	}
 
 	for _, page := range pages {
-		name := filepath.Base(page)
-		files := []string{
-			"./ui/html/base.tmpl",
-			"./ui/html/partials/nav.tmpl",
-			page,
-		}
-
-		ts, err := template.ParseFiles(files...)
+		tmpls, err := template.ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return nil, err
 		}
 
-		cache[name] = ts
+		tmpls, err = tmpls.ParseGlob("./ui/html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+
+		tmpls, err = tmpls.ParseFiles(page)
+		if err != nil {
+			return nil, err
+		}
+
+		name := filepath.Base(page)
+		name = strings.TrimSuffix(name, filepath.Ext(name))
+		cache[name] = tmpls
 	}
 
 	return cache, nil

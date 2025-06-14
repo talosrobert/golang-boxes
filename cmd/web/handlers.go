@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -21,29 +20,13 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 }
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	tmpls := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/home.tmpl",
-	}
-
 	boxes, err := app.boxes.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
-
-	ts, err := template.ParseFiles(tmpls...)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-
-	data := templateData{Boxes: boxes}
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	data := &templateData{Boxes: boxes}
+	app.render(w, r, http.StatusOK, "home", data)
 }
 
 func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
@@ -67,43 +50,12 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpls := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/view.tmpl",
-	}
-
-	ts, err := template.ParseFiles(tmpls...)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-
-	data := templateData{Box: box}
-
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	data := &templateData{Box: box}
+	app.render(w, r, http.StatusOK, "view", data)
 }
 
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
-	tmpls := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/create.tmpl",
-	}
-
-	ts, err := template.ParseFiles(tmpls...)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-
-	err = ts.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	app.render(w, r, http.StatusCreated, "create", nil)
 }
 
 func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
