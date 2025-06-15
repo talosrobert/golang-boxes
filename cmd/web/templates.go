@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ type templateData struct {
 	Boxes       []models.Box
 }
 
-func newTemplateData(opts ...func(*templateData)) *templateData {
+func newTemplateData(r *http.Request, opts ...func(*templateData)) *templateData {
 	td := &templateData{
 		CurrentYear: time.Now().Year(),
 	}

@@ -26,6 +26,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := newTemplateData(
+		r,
 		templateDataWithBoxes(boxes),
 	)
 	app.render(w, r, http.StatusOK, "home", data)
@@ -53,13 +54,15 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := newTemplateData(
+		r,
 		templateDataWithBox(box),
 	)
 	app.render(w, r, http.StatusOK, "view", data)
 }
 
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusCreated, "create", nil)
+	data := newTemplateData(r)
+	app.render(w, r, http.StatusOK, "create", data)
 }
 
 func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
