@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 )
 
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
@@ -60,8 +62,16 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "view", data)
 }
 
+type boxCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
-	data := newTemplateData(r)
+	form := boxCreateForm{Expires: 365}
+	data := newTemplateData(r, templateDataWithForm(form))
 	app.render(w, r, http.StatusOK, "create", data)
 }
 
@@ -74,15 +84,43 @@ func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := app.boxes.Insert(title, content, expires)
+	form := &boxCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: make(map[string]string),
+	}
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "this field cannot be left blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "this field cannot be longer then 100 chars"
+	}
+
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "this field cannot be left blank"
+	}
+
+	if expires != 1 && expires != 7 && expires != 365 {
+		form.FieldErrors["expires"] = "this field must equal 1, 7 or 365"
+	}
+
+	if len(form.FieldErrors) > 0 {
+		app.logger.Error().Msg("invalid user input in boxCreateForm")
+		data := newTemplateData(
+			r,
+			templateDataWithForm(form),
+		)
+		app.render(w, r, http.StatusUnprocessableEntity, "create", data)
+		return
+	}
+
+	id, err := app.boxes.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

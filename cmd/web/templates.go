@@ -14,6 +14,7 @@ type templateData struct {
 	CurrentYear int
 	Box         models.Box
 	Boxes       []models.Box
+	Form        any
 }
 
 func newTemplateData(r *http.Request, opts ...func(*templateData)) *templateData {
@@ -37,6 +38,12 @@ func templateDataWithBox(box models.Box) func(*templateData) {
 func templateDataWithBoxes(boxes []models.Box) func(*templateData) {
 	return func(td *templateData) {
 		td.Boxes = boxes
+	}
+}
+
+func templateDataWithForm(form any) func(*templateData) {
+	return func(td *templateData) {
+		td.Form = form
 	}
 }
 
