@@ -14,7 +14,7 @@ $ psql -U postgres -d boxes -h localhost -p 43089 -W
 
 ## configure boxes database
 
-Once connected to the running PostgreSQL container instance, execute the following SQL commands.
+Once connected to the running PostgreSQL container instance, execute the following SQL commands. They'll create two tables in the public schema. One for holding our _boxes_, which will be filled with a few smaple entries. And another table for holding the client session data.
 
 ~~~sql
 CREATE TABLE boxes (
@@ -31,6 +31,14 @@ INSERT INTO boxes (title, content, created, expires) VALUES
     ('box1', 'aaaaaaa', now(), now() + interval '365 days'),
     ('box2', 'bbbbbbb', now(), now() + interval '365 days'),
     ('box3', 'ccccccc', now(), now() + interval '365 days');
+
+CREATE TABLE sessions (
+	token text PRIMARY KEY,
+	data bytea NOT NULL,
+	expiry timestamp NOT NULL
+);
+
+CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 ~~~
 
 Create a service user with read-only permissions.

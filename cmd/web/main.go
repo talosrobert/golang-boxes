@@ -3,18 +3,23 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rs/zerolog"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rs/zerolog"
 
 	"github.com/talosrobert/golang-boxes/internal/models"
 )
 
 type application struct {
-	logger        zerolog.Logger
-	boxes         *models.BoxModel
-	templateCache templateCache
+	logger         zerolog.Logger
+	boxes          *models.BoxModel
+	templateCache  templateCache
+	sessionmanager *scs.SessionManager
 }
 
 func (app *application) routes() http.Handler {
@@ -53,11 +58,14 @@ func main() {
 	}
 
 	app := &application{
-		logger:        logger,
-		boxes:         &models.BoxModel{DB: dbpool},
-		templateCache: templateCache,
+		logger:         logger,
+		boxes:          &models.BoxModel{DB: dbpool},
+		templateCache:  templateCache,
+		sessionmanager: scs.New(),
 	}
 
+	app.sessionmanager.Store = pgxstore.New(dbpool)
+	app.sessionmanager.Lifetime = (time.Hour * 12)
 	mux := app.routes()
 
 	logger.Info().Msgf("Starting HTTP server on %s", *addr)
