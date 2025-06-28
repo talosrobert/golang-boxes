@@ -55,10 +55,14 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := newTemplateData(
-		r,
-		templateDataWithBox(box),
-	)
+	var data *templateData
+	var flash string
+	if flash = app.sessionmanager.PopString(r.Context(), "flash"); flash != "" {
+		data = newTemplateData(r, templateDataWithBox(box), templateDataWithFlash(flash))
+	} else {
+		data = newTemplateData(r, templateDataWithBox(box))
+	}
+
 	app.render(w, r, http.StatusOK, "view", data)
 }
 
@@ -116,5 +120,6 @@ func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.sessionmanager.Put(r.Context(), "flash", "successfully created a box")
 	http.Redirect(w, r, fmt.Sprintf("/box/view/%d", id), http.StatusSeeOther)
 }

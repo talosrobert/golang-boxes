@@ -25,10 +25,10 @@ type application struct {
 func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /box/view/{id}", app.boxView)
-	mux.HandleFunc("GET /box/create", app.boxCreate)
-	mux.HandleFunc("POST /box/create", app.boxCreatePost)
+	mux.Handle("GET /{$}", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.home)))
+	mux.Handle("GET /box/view/{id}", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxView)))
+	mux.Handle("GET /box/create", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxCreate)))
+	mux.Handle("POST /box/create", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxCreatePost)))
 
 	fs := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fs))

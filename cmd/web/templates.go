@@ -15,6 +15,7 @@ type templateData struct {
 	Box         models.Box
 	Boxes       []models.Box
 	Form        any
+	Flash       string
 }
 
 func newTemplateData(r *http.Request, opts ...func(*templateData)) *templateData {
@@ -44,6 +45,12 @@ func templateDataWithBoxes(boxes []models.Box) func(*templateData) {
 func templateDataWithForm(form any) func(*templateData) {
 	return func(td *templateData) {
 		td.Form = form
+	}
+}
+
+func templateDataWithFlash(flash string) func(*templateData) {
+	return func(td *templateData) {
+		td.Flash = flash
 	}
 }
 
