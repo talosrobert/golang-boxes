@@ -27,4 +27,5 @@ go.work.sum
 # temporary binary files
 bin/
 
+# NVIM session file
 session.nvim
