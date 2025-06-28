@@ -9,7 +9,7 @@ import (
 )
 
 type Box struct {
-	ID      uint
+	Id      uint
 	Title   string
 	Content string
 	Created time.Time
@@ -40,7 +40,7 @@ func (m *BoxModel) Get(id int) (Box, error) {
 	defer cancel()
 
 	var box Box
-	err := m.DB.QueryRow(ctx, query).Scan(&box.ID, &box.Title, &box.Content, &box.Created, &box.Expires)
+	err := m.DB.QueryRow(ctx, query).Scan(&box.Id, &box.Title, &box.Content, &box.Created, &box.Expires)
 	if err != nil {
 		return Box{}, err
 	}
@@ -62,7 +62,7 @@ func (m *BoxModel) Latest() ([]Box, error) {
 
 	for rows.Next() {
 		var box Box
-		err := rows.Scan(&box.ID, &box.Title, &box.Content, &box.Created, &box.Expires)
+		err := rows.Scan(&box.Id, &box.Title, &box.Content, &box.Created, &box.Expires)
 		if err != nil {
 			return nil, err
 		}
@@ -72,6 +72,7 @@ func (m *BoxModel) Latest() ([]Box, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
+	fmt.Println(boxes)
 
 	return boxes, nil
 }

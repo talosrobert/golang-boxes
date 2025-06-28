@@ -39,6 +39,15 @@ CREATE TABLE sessions (
 );
 
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
+CREATE TABLE users (
+    id uuid PRIMARY KEY,
+    name text NOT NULL,
+    email text NOT NULL,
+    pswhash text NOT NULL, 
+    created timestamp NOT NULL,
+    UNIQUE (email)
+);
 ~~~
 
 Create a service user with read-only permissions.
