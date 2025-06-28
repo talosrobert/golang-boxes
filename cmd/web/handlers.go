@@ -56,8 +56,7 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var data *templateData
-	var flash string
-	if flash = app.sessionmanager.PopString(r.Context(), "flash"); flash != "" {
+	if flash := app.sessionmanager.PopString(r.Context(), "flash"); flash != "" {
 		data = newTemplateData(r, templateDataWithBox(box), templateDataWithFlash(flash))
 	} else {
 		data = newTemplateData(r, templateDataWithBox(box))
