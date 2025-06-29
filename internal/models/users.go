@@ -10,11 +10,11 @@ import (
 )
 
 type User struct {
-	Id       uuid.UUID
-	Name     string
-	Email    string
-	Password string
-	Created  time.Time
+	Id      uuid.UUID
+	Name    string
+	Email   string
+	Pswhash string
+	Created time.Time
 }
 
 type UserModel struct {
@@ -49,9 +49,16 @@ func (m *UserModel) Get(id uuid.UUID) (User, error) {
 	return user, nil
 }
 
-func (m *UserModel) UpdatePsw(id uuid.UUID, psw string) (User, error) {
+func (m *UserModel) Authenticate(email string, psw string) (uuid.UUID, error) {
 	// https://www.postgresql.org/docs/16/pgcrypto.html#PGCRYPTO-PASSWORD-HASHING-FUNCS
 	// SELECT (pswhash = crypt('entered password', pswhash)) AS pswmatch FROM ... ;
-	var user User
-	return user, nil
+	var id uuid.UUID
+	return id, nil
+}
+
+func (m *UserModel) UpdatePsw(email string, psw string) (uuid.UUID, error) {
+	// https://www.postgresql.org/docs/16/pgcrypto.html#PGCRYPTO-PASSWORD-HASHING-FUNCS
+	// SELECT (pswhash = crypt('entered password', pswhash)) AS pswmatch FROM ... ;
+	var id uuid.UUID
+	return id, nil
 }

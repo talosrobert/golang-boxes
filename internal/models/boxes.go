@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Box struct {
-	Id      uint
+	Id      uuid.UUID
 	Title   string
 	Content string
 	Created time.Time
@@ -20,29 +21,29 @@ type BoxModel struct {
 	DB *pgxpool.Pool
 }
 
-func (m *BoxModel) Insert(title string, content string, expires int) (int, error) {
+func (m *BoxModel) Insert(title string, content string, expires int) (uuid.UUID, error) {
 	query := fmt.Sprintf("INSERT INTO boxes (title, content, created, expires) VALUES ('%s', '%s', now(), now() + interval '%d days') RETURNING id", title, content, expires)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	var id int
+	var id uuid.UUID
 	err := m.DB.QueryRow(ctx, query).Scan(&id)
 	if err != nil {
-		return 0, err
+		return id, err
 	}
 
 	return id, nil
 }
 
-func (m *BoxModel) Get(id int) (Box, error) {
-	query := fmt.Sprintf("SELECT id, title, content, created, expires FROM boxes WHERE id = %d", id)
+func (m *BoxModel) Get(id uuid.UUID) (Box, error) {
+	query := fmt.Sprintf("SELECT id, title, content, created, expires FROM boxes WHERE id = '%s'", id)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	var box Box
 	err := m.DB.QueryRow(ctx, query).Scan(&box.Id, &box.Title, &box.Content, &box.Created, &box.Expires)
 	if err != nil {
-		return Box{}, err
+		return box, err
 	}
 
 	return box, nil
@@ -72,7 +73,6 @@ func (m *BoxModel) Latest() ([]Box, error) {
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-	fmt.Println(boxes)
 
 	return boxes, nil
 }

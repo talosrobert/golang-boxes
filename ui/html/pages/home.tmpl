@@ -6,13 +6,13 @@
         <tr>
             <th>Title</th>
             <th>Created</th>
-            <th>ID</th>
+            <th>Id</th>
         </tr>
     {{range .Boxes}}
         <tr>
-            <td><a href='/box/view/{{.ID}}'>{{.Title}}</a></td>
+            <td><a href='/box/view/{{.Id}}'>{{.Title}}</a></td>
             <td>{{.Created.Format "02 Jan 06 15:04 MST"}}</td>
-            <td>#{{.ID}}</td>
+            <td>#{{.Id}}</td>
         </tr>
         {{end}}
     </table>

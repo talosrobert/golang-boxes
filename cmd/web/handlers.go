@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/talosrobert/golang-boxes/internal/validator"
 )
 
@@ -35,15 +36,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
 		app.logger.Error().Err(err).Str("http_method", r.Method).Str("uri", r.URL.RequestURI()).Send()
-		http.NotFound(w, r)
-		return
-	}
-
-	if id < 1 {
-		app.logger.Error().Str("http_method", r.Method).Str("uri", r.URL.RequestURI()).Msg("invalid box id")
 		http.NotFound(w, r)
 		return
 	}
@@ -120,5 +115,5 @@ func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.sessionmanager.Put(r.Context(), "flash", "successfully created a box")
-	http.Redirect(w, r, fmt.Sprintf("/box/view/%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/box/view/%s", id), http.StatusSeeOther)
 }
