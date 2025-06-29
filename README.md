@@ -18,7 +18,7 @@ Once connected to the running PostgreSQL container instance, execute the followi
 
 ~~~sql
 CREATE TABLE boxes (
-    id serial PRIMARY KEY,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     title varchar(100) NOT NULL,
     content text NOT NULL,
     created timestamp NOT NULL,
@@ -41,12 +41,11 @@ CREATE TABLE sessions (
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 
 CREATE TABLE users (
-    id uuid PRIMARY KEY,
-    name text NOT NULL,
-    email text NOT NULL,
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name varchar(100) NOT NULL,
+    email text NOT NULL UNIQUE,
     pswhash text NOT NULL, 
     created timestamp NOT NULL,
-    UNIQUE (email)
 );
 ~~~
 
