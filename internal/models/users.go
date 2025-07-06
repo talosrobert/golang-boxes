@@ -22,7 +22,7 @@ type UserModel struct {
 }
 
 func (m *UserModel) Insert(name string, email string, psw string) (uuid.UUID, error) {
-	query := fmt.Sprintf("INSERT INTO users (name, email) VALUES (get_random_uuid(), '%s', '%s', crypt('%s', gen_salt('bf')), now()) RETURNING id", name, email, psw)
+	query := fmt.Sprintf("INSERT INTO users (name, email, pswhash) VALUES ('%s', '%s', crypt('%s', gen_salt('bf'))) RETURNING id", name, email, psw)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
