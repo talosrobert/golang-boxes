@@ -40,12 +40,14 @@ CREATE TABLE sessions (
 
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 
+CREATE EXTENSION pgcrypto;
+
 CREATE TABLE users (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name varchar(100) NOT NULL,
     email text NOT NULL UNIQUE,
     pswhash text NOT NULL, 
-    created timestamp NOT NULL DEFAULT now(),
+    created timestamp NOT NULL DEFAULT now()
 );
 ~~~
 

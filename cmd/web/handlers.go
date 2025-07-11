@@ -60,13 +60,6 @@ func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "view", data)
 }
 
-type boxCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
-}
-
 func (app *application) boxCreate(w http.ResponseWriter, r *http.Request) {
 	form := boxCreateForm{Expires: 365}
 	data := newTemplateData(r, templateDataWithForm(form))
@@ -117,3 +110,48 @@ func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
 	app.sessionmanager.Put(r.Context(), "flash", "successfully created a box")
 	http.Redirect(w, r, fmt.Sprintf("/box/view/%s", id), http.StatusSeeOther)
 }
+
+func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
+	var form userCreateForm
+	data := newTemplateData(r, templateDataWithForm(form))
+	app.render(w, r, http.StatusOK, "signup", data)
+}
+
+func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := &userCreateForm{
+		Name:  r.PostForm.Get("name"),
+		Email: r.PostForm.Get("email"),
+		Psw:   r.PostForm.Get("password"),
+	}
+
+	form.CheckField("name", "This field cannot be blank", validator.NotBlank(form.Name))
+	form.CheckField("email", "This field cannot be blank", validator.NotBlank(form.Email))
+	form.CheckField("email", "This field must be a valid email address", validator.ValidEmailAddr(form.Email))
+	form.CheckField("password", "This field cannot be blank", validator.NotBlank(form.Psw))
+	form.CheckField("password", "This field must have at least 6 characters", validator.MinChars(form.Psw, 6))
+
+	if !form.IsValid() {
+		data := newTemplateData(r, templateDataWithForm(form))
+		app.render(w, r, http.StatusUnprocessableEntity, "signup", data)
+	}
+
+	_, err = app.users.Insert(form.Name, form.Email, form.Psw)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.sessionmanager.Put(r.Context(), "flash", "successfully created a user")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request)      {}
+func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request)  {}
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {}

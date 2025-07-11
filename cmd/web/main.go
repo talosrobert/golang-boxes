@@ -9,15 +9,18 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
-
 	"github.com/talosrobert/golang-boxes/internal/models"
+
+	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 )
 
 type application struct {
 	logger         zerolog.Logger
 	boxes          *models.BoxModel
+	users          *models.UserModel
 	templateCache  templateCache
 	sessionmanager *scs.SessionManager
 }
@@ -29,6 +32,12 @@ func (app *application) routes() http.Handler {
 	mux.Handle("GET /box/view/{id}", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxView)))
 	mux.Handle("GET /box/create", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxCreate)))
 	mux.Handle("POST /box/create", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.boxCreatePost)))
+
+	mux.Handle("GET /user/signup", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.userSignup)))
+	mux.Handle("POST /user/signup", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.userSignupPost)))
+	mux.Handle("GET /user/login", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.userLogin)))
+	mux.Handle("POST /user/login", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.userLoginPost)))
+	mux.Handle("POST /user/logout", app.sessionmanager.LoadAndSave(http.HandlerFunc(app.userLogoutPost)))
 
 	fs := http.FileServer(http.Dir("./ui/static"))
 	mux.Handle("GET /static/", http.StripPrefix("/static", fs))
@@ -44,7 +53,18 @@ func main() {
 	dsn := flag.String("dsn", "localhost:5432", "database network address")
 	flag.Parse()
 
-	dbpool, err := pgxpool.New(context.Background(), *dsn)
+	dbcfg, err := pgxpool.ParseConfig(*dsn)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Unable to parse database connection string")
+		os.Exit(1)
+	}
+
+	dbcfg.AfterConnect = func(ctx context.Context, c *pgx.Conn) error {
+		pgxUUID.Register(c.TypeMap())
+		return nil
+	}
+
+	dbpool, err := pgxpool.NewWithConfig(context.Background(), dbcfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Unable to create connection pool")
 		os.Exit(1)

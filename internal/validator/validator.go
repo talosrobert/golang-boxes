@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"net/mail"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -34,10 +35,22 @@ func NotBlank(s string) bool {
 	return strings.TrimSpace(s) != ""
 }
 
+func MinChars(s string, n int) bool {
+	return utf8.RuneCountInString(s) >= n
+}
+
 func MaxChars(s string, n int) bool {
 	return utf8.RuneCountInString(s) <= n
 }
 
 func PermittedValues[T comparable](value T, permittedValues ...T) bool {
 	return slices.Contains(permittedValues, value)
+}
+
+func ValidEmailAddr(s string) bool {
+	_, err := mail.ParseAddress(s)
+	if err != nil {
+		return false
+	}
+	return true
 }

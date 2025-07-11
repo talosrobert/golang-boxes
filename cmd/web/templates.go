@@ -8,7 +8,22 @@ import (
 	"time"
 
 	"github.com/talosrobert/golang-boxes/internal/models"
+	"github.com/talosrobert/golang-boxes/internal/validator"
 )
+
+type userCreateForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Psw                 string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
+type boxCreateForm struct {
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
+}
 
 type templateData struct {
 	CurrentYear int
