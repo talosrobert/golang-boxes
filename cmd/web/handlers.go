@@ -142,7 +142,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		app.render(w, r, http.StatusUnprocessableEntity, "signup", data)
 	}
 
-	_, err = app.users.Insert(form.Name, form.Email, form.Psw)
+	err = app.users.Insert(form.Name, form.Email, form.Psw)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

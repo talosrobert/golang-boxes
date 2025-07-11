@@ -80,6 +80,7 @@ func main() {
 	app := &application{
 		logger:         logger,
 		boxes:          &models.BoxModel{DB: dbpool},
+		users:          &models.UserModel{DB: dbpool},
 		templateCache:  templateCache,
 		sessionmanager: scs.New(),
 	}
