@@ -1,21 +1,27 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/talosrobert/golang-boxes/internal/models"
 	"github.com/talosrobert/golang-boxes/internal/validator"
 )
 
-func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
+func (app *application) serverErrorWithStatus(w http.ResponseWriter, r *http.Request, err error, statusCode int) {
 	var (
 		method = r.Method
 		uri    = r.URL.RequestURI()
 	)
-	app.logger.Error().Err(err).Str("http_method", method).Str("uri", uri).Send()
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	app.logger.Error().Err(err).Str("http_method", method).Str("http_uri", uri).Send()
+	http.Error(w, http.StatusText(statusCode), statusCode)
+}
+
+func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
+	app.serverErrorWithStatus(w, r, err, http.StatusInternalServerError)
 }
 
 func (app *application) clientError(w http.ResponseWriter, status int) {
@@ -28,25 +34,24 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 		return
 	}
-	data := newTemplateData(
-		r,
-		templateDataWithBoxes(boxes),
-	)
+	data := newTemplateData(r, templateDataWithBoxes(boxes))
 	app.render(w, r, http.StatusOK, "home", data)
 }
 
 func (app *application) boxView(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(r.PathValue("id"))
 	if err != nil {
-		app.logger.Error().Err(err).Str("http_method", r.Method).Str("uri", r.URL.RequestURI()).Send()
-		http.NotFound(w, r)
+		app.serverError(w, r, err)
 		return
 	}
 
 	box, err := app.boxes.Get(id)
 	if err != nil {
-		app.logger.Error().Err(err).Str("http_method", r.Method).Str("uri", r.URL.RequestURI()).Send()
-		http.NotFound(w, r)
+		if errors.Is(err, models.ErrNoRows) {
+			app.serverErrorWithStatus(w, r, err, http.StatusNotFound)
+		} else {
+			app.serverError(w, r, err)
+		}
 		return
 	}
 
@@ -93,10 +98,7 @@ func (app *application) boxCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if !form.IsValid() {
 		app.logger.Error().Msg("invalid user input in boxCreateForm")
-		data := newTemplateData(
-			r,
-			templateDataWithForm(form),
-		)
+		data := newTemplateData(r, templateDataWithForm(form))
 		app.render(w, r, http.StatusUnprocessableEntity, "create", data)
 		return
 	}
@@ -144,7 +146,13 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	err = app.users.Insert(form.Name, form.Email, form.Psw)
 	if err != nil {
-		app.serverError(w, r, err)
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			form.AddFieldError("email", "Email address is already in use")
+			data := newTemplateData(r, templateDataWithForm(form))
+			app.render(w, r, http.StatusUnprocessableEntity, "signup", data)
+		} else {
+			app.serverError(w, r, err)
+		}
 		return
 	}
 

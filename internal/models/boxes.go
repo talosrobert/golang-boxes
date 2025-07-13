@@ -2,10 +2,13 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,6 +32,10 @@ func (m *BoxModel) Insert(title string, content string, expires int) (uuid.UUID,
 	var id uuid.UUID
 	err := m.DB.QueryRow(ctx, query).Scan(&id)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr); pgErr.Code == "23505" {
+			return id, ErrDuplicateEmail
+		}
 		return id, err
 	}
 
@@ -43,6 +50,9 @@ func (m *BoxModel) Get(id uuid.UUID) (Box, error) {
 	var box Box
 	err := m.DB.QueryRow(ctx, query).Scan(&box.Id, &box.Title, &box.Content, &box.Created, &box.Expires)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return box, ErrNoRows
+		}
 		return box, err
 	}
 

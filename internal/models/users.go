@@ -2,10 +2,14 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,6 +33,10 @@ func (m *UserModel) Insert(name string, email string, psw string) error {
 	var id uuid.UUID
 	err := m.DB.QueryRow(ctx, query).Scan(&id)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr); pgErr.Code == "23505" && strings.Contains(pgErr.Message, "users_email_key") {
+			return ErrDuplicateEmail
+		}
 		return err
 	}
 
@@ -43,6 +51,9 @@ func (m *UserModel) Get(id uuid.UUID) (User, error) {
 	var user User
 	err := m.DB.QueryRow(ctx, query).Scan(&user.Id, &user.Name, &user.Email, &user.Created)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return user, ErrNoRows
+		}
 		return user, err
 	}
 
