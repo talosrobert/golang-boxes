@@ -61,9 +61,19 @@ func (m *UserModel) Get(id uuid.UUID) (User, error) {
 }
 
 func (m *UserModel) Authenticate(email string, psw string) (uuid.UUID, error) {
-	// https://www.postgresql.org/docs/16/pgcrypto.html#PGCRYPTO-PASSWORD-HASHING-FUNCS
-	// SELECT (pswhash = crypt('entered password', pswhash)) AS pswmatch FROM ... ;
+	query := fmt.Sprintf("SELECT id FROM users WHERE email= '%s' AND pswhash = crypt('%s', pswhash);", email, psw)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
 	var id uuid.UUID
+	err := m.DB.QueryRow(ctx, query).Scan(&id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return id, ErrWrongCredentials
+		}
+		return id, err
+	}
+
 	return id, nil
 }
 

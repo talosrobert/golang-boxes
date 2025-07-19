@@ -120,7 +120,6 @@ func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-
 	err := r.ParseForm()
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
@@ -160,6 +159,49 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
-func (app *application) userLogin(w http.ResponseWriter, r *http.Request)      {}
-func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request)  {}
+func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	var form userLoginForm
+	data := newTemplateData(r, templateDataWithForm(form))
+	app.render(w, r, http.StatusOK, "login", data)
+}
+
+func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	form := &userLoginForm{
+		Email: r.PostForm.Get("email"),
+		Psw:   r.PostForm.Get("password"),
+	}
+
+	form.CheckField("email", "This field cannot be blank", validator.NotBlank(form.Email))
+	form.CheckField("email", "This field must be a valid email address", validator.ValidEmailAddr(form.Email))
+	form.CheckField("password", "This field cannot be blank", validator.NotBlank(form.Psw))
+
+	if !form.IsValid() {
+		data := newTemplateData(r, templateDataWithForm(form))
+		app.render(w, r, http.StatusUnprocessableEntity, "login", data)
+	}
+
+	id, err := app.users.Authenticate(form.Email, form.Psw)
+	if err != nil {
+		if errors.Is(err, models.ErrWrongCredentials) {
+			//TODO
+		} else {
+			app.serverError(w, r, err)
+		}
+	}
+
+	err = app.sessionmanager.RenewToken(r.Context())
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+
+	app.sessionmanager.Put(r.Context(), "authenticatedUserId", id)
+	http.Redirect(w, r, "/boxes/create", http.StatusSeeOther)
+}
+
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {}

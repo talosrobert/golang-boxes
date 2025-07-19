@@ -18,6 +18,12 @@ type userCreateForm struct {
 	validator.Validator `form:"-"`
 }
 
+type userLoginForm struct {
+	Email               string `form:"email"`
+	Psw                 string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 type boxCreateForm struct {
 	Title               string `form:"title"`
 	Content             string `form:"content"`
