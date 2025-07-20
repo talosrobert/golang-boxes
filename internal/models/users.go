@@ -44,7 +44,7 @@ func (m *UserModel) Insert(name string, email string, psw string) error {
 }
 
 func (m *UserModel) Get(id uuid.UUID) (User, error) {
-	query := fmt.Sprintf("SELECT id, name, email, created FROM users WHERE id = %s", id)
+	query := fmt.Sprintf("SELECT id, name, email, created FROM users WHERE id = '%s'", id)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -61,7 +61,7 @@ func (m *UserModel) Get(id uuid.UUID) (User, error) {
 }
 
 func (m *UserModel) Authenticate(email string, psw string) (uuid.UUID, error) {
-	query := fmt.Sprintf("SELECT id FROM users WHERE email= '%s' AND pswhash = crypt('%s', pswhash);", email, psw)
+	query := fmt.Sprintf("SELECT id FROM users WHERE email = '%s' AND pswhash = crypt('%s', pswhash);", email, psw)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -70,10 +70,10 @@ func (m *UserModel) Authenticate(email string, psw string) (uuid.UUID, error) {
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return id, ErrWrongCredentials
+		} else {
+			return id, err
 		}
-		return id, err
 	}
-
 	return id, nil
 }
 

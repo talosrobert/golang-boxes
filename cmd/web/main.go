@@ -55,7 +55,7 @@ func main() {
 
 	dbcfg, err := pgxpool.ParseConfig(*dsn)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("Unable to parse database connection string")
+		logger.Fatal().Err(err).Msg("Unable to parse database connection string.")
 		os.Exit(1)
 	}
 
@@ -66,14 +66,14 @@ func main() {
 
 	dbpool, err := pgxpool.NewWithConfig(context.Background(), dbcfg)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("Unable to create connection pool")
+		logger.Fatal().Err(err).Msg("Unable to create connection pool.")
 		os.Exit(1)
 	}
 	defer dbpool.Close()
 
 	templateCache, err := newTemplateCache()
 	if err != nil {
-		logger.Fatal().Err(err).Msg("Unable to create connection pool")
+		logger.Fatal().Err(err).Msg("Unable to create template cache.")
 		os.Exit(1)
 	}
 

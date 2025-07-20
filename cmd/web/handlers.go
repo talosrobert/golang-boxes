@@ -189,10 +189,14 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	id, err := app.users.Authenticate(form.Email, form.Psw)
 	if err != nil {
 		if errors.Is(err, models.ErrWrongCredentials) {
-			//TODO
+			form.AddNonFieldError("Email or password is incorrect.")
+			data := newTemplateData(r, templateDataWithForm(form))
+			//log failed login attempts
+			app.render(w, r, http.StatusUnprocessableEntity, "login", data)
 		} else {
 			app.serverError(w, r, err)
 		}
+		return
 	}
 
 	err = app.sessionmanager.RenewToken(r.Context())
@@ -200,8 +204,8 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 	}
 
-	app.sessionmanager.Put(r.Context(), "authenticatedUserId", id)
-	http.Redirect(w, r, "/boxes/create", http.StatusSeeOther)
+	app.sessionmanager.Put(r.Context(), "authenticatedUserId", id.String())
+	http.Redirect(w, r, "/box/create", http.StatusSeeOther)
 }
 
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {}
